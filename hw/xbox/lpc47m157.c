@@ -80,7 +80,7 @@ static void update_devices(LPC47M157State *s)
     int i;
 
     /* init serial devices */
-    for (i = 0; i < 2; i++) {
+    /*for (i = 0; i < 2; i++) {
         uint8_t *dev = s->device_regs[DEVICE_SERIAL_PORT_1 + i];
         if (dev[CONFIG_DEVICE_ACTIVATE] && !s->serial[i].active) {
             uint32_t iobase = (dev[CONFIG_DEVICE_BASE_ADDRESS_HIGH] << 8)
@@ -95,7 +95,7 @@ static void update_devices(LPC47M157State *s)
 
             s->serial[i].active = true;
         }
-    }
+    }*/
 }
 
 static void lpc47m157_io_write(void *opaque, hwaddr addr, uint64_t val,
@@ -191,7 +191,7 @@ static void lpc47m157_realize(DeviceState *dev, Error **errp)
     isa_register_ioport(isa, &s->io, iobase);
 
     /* init serial cores */
-    for (i = 0; i < 2; i++) {
+    /*for (i = 0; i < 2; i++) {
         Chardev *chr = serial_hd(i);
         if (chr == NULL) {
             char name[5];
@@ -205,7 +205,7 @@ static void lpc47m157_realize(DeviceState *dev, Error **errp)
         serial_realize_core(ss, errp);
         memory_region_init_io(&ss->io, OBJECT(s),
                               &serial_io_ops, ss, "serial", 8);
-    }
+    }*/
 }
 
 static const VMStateDescription vmstate_lpc47m157 = {
