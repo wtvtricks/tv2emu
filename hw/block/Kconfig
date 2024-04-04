@@ -9,6 +9,7 @@ config SSI_M25P80
 
 config NAND
     bool
+    default y
 
 config PFLASH_CFI01
     bool
