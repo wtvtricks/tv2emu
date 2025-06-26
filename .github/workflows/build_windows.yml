@@ -56,6 +56,11 @@ jobs:
           echo "BUILD_PARAM=--release" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=xqemu-release" >> $GITHUB_ENV
         fi
+    - name: Sync MSYS2 Package Databases
+      shell: pwsh
+      run: |
+        echo "Syncing all MSYS2 package databases..."
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm"
     - name: Install Common MSYS2 Build Dependencies
       shell: pwsh
       run: |
