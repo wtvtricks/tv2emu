@@ -21,7 +21,7 @@ jobs:
           print('::set-env name=BUILD_PARAM::--release')
           print('::set-env name=ARTIFACT_NAME::xqemu-release')
     - name: Clone Tree
-      uses: actions/checkout@v3
+      uses: actions/checkout@v1
       with:
         fetch-depth: 1
     - name: Install Dependencies
@@ -34,7 +34,7 @@ jobs:
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
     - name: Initialize Compiler Cache
       id: cache
-      uses: actions/cache@v3
+      uses: actions/cache@v1
       with:
         path: C:\tools\msys64\tmp\xqemu-ccache
         key: cache-${{ runner.os }}-${{ matrix.configuration }}-${{ github.sha }}
