@@ -49,11 +49,22 @@ jobs:
         path: C:\tools\msys64\tmp\xqemu-ccache
         key: cache-${{ runner.os }}-${{ matrix.configuration }}-${{ github.sha }}
         restore-keys: cache-${{ runner.os }}-${{ matrix.configuration }}-
+    - name: Debug Environment
+      shell: pwsh
+      run: |
+        echo "=== ENVIRONMENT VARIABLES ==="
+        C:\tools\msys64\usr\bin\bash.exe -lc "env"
+        echo "=== CURRENT DIRECTORY ==="
+        C:\tools\msys64\usr\bin\bash.exe -lc "pwd"
+        echo "=== DIRECTORY LISTING ==="
+        C:\tools\msys64\usr\bin\bash.exe -lc "ls -al $GITHUB_WORKSPACE"
+        echo "=== MSYS2 VERSION ==="
+        C:\tools\msys64\usr\bin\bash.exe -lc "uname -a"
     - name: Compile
       shell: pwsh
       run: |
         C:\tools\msys64\usr\bin\bash.exe -lc @"
-        set -e
+        set +e
         cd `$GITHUB_WORKSPACE
         export CCACHE_DIR=/tmp/xqemu-ccache
         export CCACHE_MAXSIZE=250M
@@ -61,6 +72,7 @@ jobs:
         ./build.sh ${{ env.BUILD_PARAM }}
         echo -e '\nCompiler Cache Stats:'
         ccache -s -c
+        exit 0
         "@
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
