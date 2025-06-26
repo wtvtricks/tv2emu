@@ -38,8 +38,14 @@ jobs:
         # Try multiple keyservers for the missing key
         C:\tools\msys64\usr\bin\bash.exe -lc 'pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.ubuntu.com || pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.pgp.com || true'
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --lsign-key 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 || true"
+    - name: Update MSYS2 Environment
+      shell: pwsh
+      run: |
         echo "Updating MSYS2 environment..."
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm || (echo 'MSYS2 update may require rerun, ignoring error for CI' && exit 0)"
+    - name: Install Common MSYS2 Build Dependencies
+      shell: pwsh
+      run: |
         echo "Installing common MSYS2 build dependencies..."
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-pkg-config git make autoconf automake libtool"
     - name: Initialize Compiler Cache
