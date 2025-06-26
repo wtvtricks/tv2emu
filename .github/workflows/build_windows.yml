@@ -34,7 +34,7 @@ jobs:
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
     - name: Initialize Compiler Cache
       id: cache
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: C:\tools\msys64\tmp\xqemu-ccache
         key: cache-${{ runner.os }}-${{ matrix.configuration }}-${{ github.sha }}
