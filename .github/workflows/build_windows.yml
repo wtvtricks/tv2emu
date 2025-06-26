@@ -32,6 +32,11 @@ jobs:
         Invoke-WebRequest -Uri "https://github.com/xqemu/ci-environment-msys2/releases/latest/download/msys64.7z" -OutFile "msys64.7z"
         echo "Extracting MSYS2 environment..."
         7z x -y msys64.7z "-oC:\tools\"
+        echo "Importing and refreshing MSYS2 PGP keys..."
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --init"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --refresh-keys"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --lsign-key 5F944B027F7FE2091985AA2EFA11531AA0AA7F57"
         echo "Updating MSYS2 environment..."
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
     - name: Initialize Compiler Cache
