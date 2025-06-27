@@ -61,17 +61,17 @@ jobs:
       run: |
         echo "Syncing all MSYS2 package databases..."
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm"
-    - name: Install Common MSYS2 Build Dependencies
-      shell: pwsh
-      run: |
-        echo "Installing common MSYS2 build dependencies..."
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm --overwrite '*' --ask=4 base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-pkgconf git make autoconf automake libtool"
     - name: Prepare MSYS2 Environment
       shell: pwsh
       run: |
         echo "Creating /tmp and removing old conflicting packages if present..."
         C:\tools\msys64\usr\bin\bash.exe -lc "mkdir -p /tmp"
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -R --noconfirm mingw-w64-x86_64-gettext || true"
+    - name: Install Common MSYS2 Build Dependencies
+      shell: pwsh
+      run: |
+        echo "Installing common MSYS2 build dependencies..."
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm --overwrite '*' --ask=4 base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-pkgconf git make autoconf automake libtool"
     - name: Initialize Compiler Cache
       id: cache
       uses: actions/cache@v4
