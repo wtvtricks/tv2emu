@@ -65,7 +65,7 @@ jobs:
       shell: pwsh
       run: |
         echo "Installing common MSYS2 build dependencies..."
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-pkg-config git make autoconf automake libtool"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm --overwrite '*' --ask=4 base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-pkgconf git make autoconf automake libtool"
     - name: Initialize Compiler Cache
       id: cache
       uses: actions/cache@v4
