@@ -9,18 +9,17 @@ jobs:
       matrix:
         configuration: ["Debug", "Release"]
     steps:
-    - name: Download and Extract MSYS2 Installer
+    - name: Download and Extract MSYS2 CI Tarball
       shell: pwsh
       run: |
-        $msys2_url = "https://github.com/msys2/msys2-installer/releases/download/2024-01-13/msys2-x86_64-20240113.exe"
-        $msys2_exe = "msys2-x86_64-20240113.exe"
-        Invoke-WebRequest -Uri $msys2_url -OutFile $msys2_exe
-        # Try extracting with 7z, fallback to running the installer in unattended mode if extraction fails
-        try {
-          7z x -y $msys2_exe "-oC:\tools\"
-        } catch {
-          Write-Host '7z extraction failed, running installer in unattended mode...'
-          Start-Process -FilePath $msys2_exe -ArgumentList "/S /D=C:\tools\msys64" -Wait
+        $msys2_url = "https://github.com/msys2/msys2-installer/releases/download/2024-06-20/msys2-base-x86_64-20240620.tar.xz"
+        $msys2_tar = "msys2-base-x86_64-20240620.tar.xz"
+        Invoke-WebRequest -Uri $msys2_url -OutFile $msys2_tar
+        7z x $msys2_tar -oC:\tools\msys64 | Out-Null
+        # If extracted to a subdir, move contents up
+        if (Test-Path 'C:\tools\msys64\msys64') {
+          Move-Item -Path 'C:\tools\msys64\msys64\*' -Destination 'C:\tools\msys64' -Force
+          Remove-Item -Path 'C:\tools\msys64\msys64' -Recurse -Force
         }
     - name: Fix MSYS2 Path
       shell: pwsh
