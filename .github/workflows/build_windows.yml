@@ -12,7 +12,7 @@ jobs:
     - name: Download MSYS2 base
       shell: pwsh
       run: |
-        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/latest/download/msys2-base-x86_64-20240107.tar.xz" -OutFile "msys2-base.tar.xz"
+        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/download/20240107/msys2-base-x86_64-20240107.tar.xz" -OutFile "msys2-base.tar.xz"
         7z x -y msys2-base.tar.xz "-oC:\tools\"
     - name: Fix MSYS2 Path
       shell: pwsh
