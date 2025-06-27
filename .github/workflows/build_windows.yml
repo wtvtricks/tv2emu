@@ -14,8 +14,17 @@ jobs:
       run: |
         $msys2_url = "https://github.com/msys2/msys2-installer/releases/download/2024-01-13/msys2-x86_64-20240113.exe"
         $msys2_exe = "msys2-x86_64-20240113.exe"
+        Write-Host "Downloading MSYS2 installer..."
         Invoke-WebRequest -Uri $msys2_url -OutFile $msys2_exe
-        Start-Process -FilePath $msys2_exe -ArgumentList "/S /D=C:\tools\msys64" -Wait
+        Write-Host "Running MSYS2 installer..."
+        $proc = Start-Process -FilePath $msys2_exe -ArgumentList "/S /D=C:\tools\msys64" -Wait -PassThru
+        Write-Host "Installer exited with code: $($proc.ExitCode)"
+        Write-Host "Listing C:\tools after install:"
+        Get-ChildItem -Path C:\tools -Recurse | Write-Host
+        if (!(Test-Path 'C:\tools\msys64\usr\bin\bash.exe')) {
+          Write-Host "ERROR: MSYS2 did not install correctly!"
+          exit 1
+        }
     - name: Fix MSYS2 Path
       shell: pwsh
       run: |
