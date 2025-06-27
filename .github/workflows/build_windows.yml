@@ -3,43 +3,24 @@ name: Build (Windows)
 on: [push, pull_request]
 
 jobs:
-  update-msys2:
-    runs-on: windows-latest
-    steps:
-    - name: Download MSYS2 environment
-      shell: pwsh
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/xqemu/ci-environment-msys2/releases/latest/download/msys64.7z" -OutFile "msys64.7z"
-        7z x -y msys64.7z "-oC:\tools\"
-    - name: Import and refresh MSYS2 PGP keys
-      shell: pwsh
-      run: |
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --init"
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --refresh-keys"
-        C:\tools\msys64\usr\bin\bash.exe -lc 'pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.ubuntu.com || pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.pgp.com || true'
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --lsign-key 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 || true"
-    - name: Update MSYS2 Environment
-      shell: pwsh
-      run: |
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm || (echo 'MSYS2 update may require rerun, ignoring error for CI' && exit 0)"
-    - name: Upload updated MSYS2
-      uses: actions/upload-artifact@v4
-      with:
-        name: msys2-updated
-        path: C:\tools\msys64
-
   build:
     runs-on: windows-latest
-    needs: update-msys2
     strategy:
       matrix:
         configuration: ["Debug", "Release"]
     steps:
-    - name: Download updated MSYS2
-      uses: actions/download-artifact@v4
-      with:
-        name: msys2-updated
-        path: C:\tools\msys64
+    - name: Download MSYS2 base
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/latest/download/msys2-base-x86_64-20240107.tar.xz" -OutFile "msys2-base.tar.xz"
+        7z x -y msys2-base.tar.xz "-oC:\tools\"
+    - name: Fix MSYS2 Path
+      shell: pwsh
+      run: |
+        if (!(Test-Path 'C:\tools\msys64\usr\bin\bash.exe') -and (Test-Path 'C:\tools\msys64\msys64\usr\bin\bash.exe')) {
+          Move-Item -Path 'C:\tools\msys64\msys64\*' -Destination 'C:\tools\msys64' -Force
+          Remove-Item -Path 'C:\tools\msys64\msys64' -Recurse -Force
+        }
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -56,6 +37,17 @@ jobs:
           echo "BUILD_PARAM=--release" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=xqemu-release" >> $GITHUB_ENV
         fi
+    - name: Import and refresh MSYS2 PGP keys
+      shell: pwsh
+      run: |
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --init"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --refresh-keys"
+        C:\tools\msys64\usr\bin\bash.exe -lc 'pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.ubuntu.com || pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.pgp.com || true'
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --lsign-key 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 || true"
+    - name: Update MSYS2 Environment
+      shell: pwsh
+      run: |
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm || (echo 'MSYS2 update may require rerun, ignoring error for CI' && exit 0)"
     - name: Sync MSYS2 Package Databases
       shell: pwsh
       run: |
@@ -109,12 +101,4 @@ jobs:
       with:
         name: ${{ env.ARTIFACT_NAME }}
         path: dist
-    - name: Fix MSYS2 Path After Artifact Extraction
-      shell: pwsh
-      run: |
-        if (!(Test-Path 'C:\tools\msys64\usr\bin\bash.exe') -and (Test-Path 'C:\tools\msys64\msys64\usr\bin\bash.exe')) {
-          Write-Host 'Fixing MSYS2 path...'
-          Move-Item -Path 'C:\tools\msys64\msys64\*' -Destination 'C:\tools\msys64' -Force
-          Remove-Item -Path 'C:\tools\msys64\msys64' -Recurse -Force
-        }
 
