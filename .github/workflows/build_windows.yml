@@ -12,8 +12,8 @@ jobs:
     - name: Download and Extract MSYS2 Installer
       shell: pwsh
       run: |
-        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/download/nightly-x86_64/msys2-x86_64-latest.exe" -OutFile "msys2-x86_64-latest.exe"
-        7z x -y msys2-x86_64-latest.exe "-oC:\tools\"
+        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/download/2024-01-13/msys2-x86_64-20240113.exe" -OutFile "msys2-x86_64-20240107.exe"
+        7z x -y msys2-x86_64-20240107.exe "-oC:\tools\"
     - name: Fix MSYS2 Path
       shell: pwsh
       run: |
@@ -53,12 +53,13 @@ jobs:
       run: |
         echo "Syncing all MSYS2 package databases..."
         C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm"
-    - name: Prepare MSYS2 Environment
+    - name: Prepare MSYS2 Environment (robust)
       shell: pwsh
       run: |
-        echo "Creating /tmp and force-removing old conflicting packages if present..."
+        echo "Full upgrade, create /tmp, and force-remove old conflicting packages if present..."
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm || true"
         C:\tools\msys64\usr\bin\bash.exe -lc "mkdir -p /tmp"
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Rdd --noconfirm mingw-w64-x86_64-gettext mingw-w64-x86_64-gettext-runtime || true"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Rdd --noconfirm $(pacman -Qdtq) mingw-w64-x86_64-gettext mingw-w64-x86_64-gettext-runtime || true"
     - name: Install Common MSYS2 Build Dependencies
       shell: pwsh
       run: |
