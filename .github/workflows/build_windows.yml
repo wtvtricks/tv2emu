@@ -9,11 +9,11 @@ jobs:
       matrix:
         configuration: ["Debug", "Release"]
     steps:
-    - name: Download MSYS2 base
+    - name: Download and Extract MSYS2 Installer
       shell: pwsh
       run: |
-        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/download/20240107/msys2-base-x86_64-20240107.tar.xz" -OutFile "msys2-base.tar.xz"
-        7z x -y msys2-base.tar.xz "-oC:\tools\"
+        Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/download/nightly-x86_64/msys2-x86_64-latest.exe" -OutFile "msys2-installer.exe"
+        7z x -y msys2-installer.exe "-oC:\tools\"
     - name: Fix MSYS2 Path
       shell: pwsh
       run: |
