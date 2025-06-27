@@ -103,4 +103,12 @@ jobs:
       with:
         name: ${{ env.ARTIFACT_NAME }}
         path: dist
+    - name: Fix MSYS2 Path After Artifact Extraction
+      shell: pwsh
+      run: |
+        if (!(Test-Path 'C:\tools\msys64\usr\bin\bash.exe') -and (Test-Path 'C:\tools\msys64\msys64\usr\bin\bash.exe')) {
+          Write-Host 'Fixing MSYS2 path...'
+          Move-Item -Path 'C:\tools\msys64\msys64\*' -Destination 'C:\tools\msys64' -Force
+          Remove-Item -Path 'C:\tools\msys64\msys64' -Recurse -Force
+        }
 
