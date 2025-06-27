@@ -64,9 +64,9 @@ jobs:
     - name: Prepare MSYS2 Environment
       shell: pwsh
       run: |
-        echo "Creating /tmp and removing old conflicting packages if present..."
+        echo "Creating /tmp and force-removing old conflicting packages if present..."
         C:\tools\msys64\usr\bin\bash.exe -lc "mkdir -p /tmp"
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -R --noconfirm mingw-w64-x86_64-gettext || true"
+        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Rdd --noconfirm mingw-w64-x86_64-gettext mingw-w64-x86_64-gettext-runtime || true"
     - name: Install Common MSYS2 Build Dependencies
       shell: pwsh
       run: |
