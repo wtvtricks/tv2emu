@@ -9,38 +9,11 @@ jobs:
       matrix:
         configuration: ["Debug", "Release"]
     steps:
-    - name: Download and Install MSYS2 (Debug)
-      shell: pwsh
+    - name: Install build dependencies
+      shell: bash
       run: |
-        $msys2_url = "https://github.com/msys2/msys2-installer/releases/download/2024-01-13/msys2-x86_64-20240113.exe"
-        $msys2_exe = "msys2-x86_64-20240113.exe"
-        Write-Host "Downloading MSYS2 installer..."
-        Invoke-WebRequest -Uri $msys2_url -OutFile $msys2_exe
-        Write-Host "Process list before install:"
-        Get-Process | Sort-Object ProcessName | Select-Object -First 30 | Format-Table -AutoSize | Out-String | Write-Host
-        Write-Host "Running MSYS2 installer (no silent mode, 2 min timeout)..."
-        $proc = Start-Process -FilePath $msys2_exe -ArgumentList "/D=C:\tools\msys64" -Wait -PassThru -WindowStyle Hidden
-        Start-Sleep -Seconds 120
-        if (!$proc.HasExited) {
-          Write-Host "Installer still running after 2 minutes, killing..."
-          $proc | Stop-Process -Force
-        }
-        Write-Host "Installer exited with code: $($proc.ExitCode)"
-        Write-Host "Process list after install:"
-        Get-Process | Sort-Object ProcessName | Select-Object -First 30 | Format-Table -AutoSize | Out-String | Write-Host
-        Write-Host "Listing C:\tools after install:"
-        Get-ChildItem -Path C:\tools -Recurse | Write-Host
-        if (!(Test-Path 'C:\tools\msys64\usr\bin\bash.exe')) {
-          Write-Host "ERROR: MSYS2 did not install correctly!"
-          exit 1
-        }
-    - name: Fix MSYS2 Path
-      shell: pwsh
-      run: |
-        if (!(Test-Path 'C:\tools\msys64\usr\bin\bash.exe') -and (Test-Path 'C:\tools\msys64\msys64\usr\bin\bash.exe')) {
-          Move-Item -Path 'C:\tools\msys64\msys64\*' -Destination 'C:\tools\msys64' -Force
-          Remove-Item -Path 'C:\tools\msys64\msys64' -Recurse -Force
-        }
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake pkg-config git autoconf automake libtool ccache
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -57,66 +30,36 @@ jobs:
           echo "BUILD_PARAM=--release" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=xqemu-release" >> $GITHUB_ENV
         fi
-    - name: Import and refresh MSYS2 PGP keys
-      shell: pwsh
-      run: |
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --init"
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --refresh-keys"
-        C:\tools\msys64\usr\bin\bash.exe -lc 'pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.ubuntu.com || pacman-key --recv-keys 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 --keyserver keyserver.pgp.com || true'
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman-key --lsign-key 5F944B027F7FE2091985AA2EFA11531AA0AA7F57 || true"
-    - name: Update MSYS2 Environment
-      shell: pwsh
-      run: |
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm || (echo 'MSYS2 update may require rerun, ignoring error for CI' && exit 0)"
-    - name: Sync MSYS2 Package Databases
-      shell: pwsh
-      run: |
-        echo "Syncing all MSYS2 package databases..."
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm"
-    - name: Prepare MSYS2 Environment (robust)
-      shell: pwsh
-      run: |
-        echo "Full upgrade, create /tmp, and force-remove old conflicting packages if present..."
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm || true"
-        C:\tools\msys64\usr\bin\bash.exe -lc "mkdir -p /tmp"
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Rdd --noconfirm $(pacman -Qdtq) mingw-w64-x86_64-gettext mingw-w64-x86_64-gettext-runtime || true"
-    - name: Install Common MSYS2 Build Dependencies
-      shell: pwsh
-      run: |
-        echo "Installing common MSYS2 build dependencies..."
-        C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm --overwrite '*' --ask=4 base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-pkgconf git make autoconf automake libtool"
     - name: Initialize Compiler Cache
       id: cache
       uses: actions/cache@v4
       with:
-        path: C:\tools\msys64\tmp\xqemu-ccache
+        path: /tmp/xqemu-ccache
         key: cache-${{ runner.os }}-${{ matrix.configuration }}-${{ github.sha }}
         restore-keys: cache-${{ runner.os }}-${{ matrix.configuration }}-
     - name: Debug Environment
-      shell: pwsh
+      shell: bash
       run: |
         echo "=== ENVIRONMENT VARIABLES ==="
-        C:\tools\msys64\usr\bin\bash.exe -lc "env"
+        env
         echo "=== CURRENT DIRECTORY ==="
-        C:\tools\msys64\usr\bin\bash.exe -lc "pwd"
+        pwd
         echo "=== DIRECTORY LISTING ==="
-        C:\tools\msys64\usr\bin\bash.exe -lc "ls -al $GITHUB_WORKSPACE"
-        echo "=== MSYS2 VERSION ==="
-        C:\tools\msys64\usr\bin\bash.exe -lc "uname -a"
+        ls -al $GITHUB_WORKSPACE
+        echo "=== SYSTEM INFO ==="
+        uname -a
     - name: Compile
-      shell: pwsh
+      shell: bash
       run: |
-        C:\tools\msys64\usr\bin\bash.exe -lc @"
         set +e
-        cd `$GITHUB_WORKSPACE
+        cd "$GITHUB_WORKSPACE"
         export CCACHE_DIR=/tmp/xqemu-ccache
         export CCACHE_MAXSIZE=250M
-        export PATH="/usr/lib/ccache/bin:/mingw64/bin:`$PATH"
+        export PATH="/usr/lib/ccache:$PATH"
         ./build.sh ${{ env.BUILD_PARAM }}
         echo -e '\nCompiler Cache Stats:'
         ccache -s -c
         exit 0
-        "@
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
