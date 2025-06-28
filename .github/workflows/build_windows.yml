@@ -60,6 +60,13 @@ jobs:
         echo -e '\nCompiler Cache Stats:'
         ccache -s -c
         exit 0
+    - name: List build output for diagnostics
+      shell: bash
+      run: |
+        echo "=== Top-level directory listing after build ==="
+        ls -al "$GITHUB_WORKSPACE"
+        echo "=== Recursive directory listing after build ==="
+        find "$GITHUB_WORKSPACE" -type f | sort
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
