@@ -1,10 +1,10 @@
-name: Build (Windows)
+name: Build (Linux ARM64)
 
 on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: [self-hosted, linux, arm64, Raspi]
     strategy:
       matrix:
         configuration: ["Debug", "Release"]
